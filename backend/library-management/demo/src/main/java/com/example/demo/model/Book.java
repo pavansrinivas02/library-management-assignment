@@ -24,8 +24,10 @@ public class Book {
 
     private String borrowedBy;
 
+    // NORMAL / EXPIRY / LIBRARY_ONLY
     private String policy;
 
+    // timestamp expiry
     private Long expiryTime;
 
 }

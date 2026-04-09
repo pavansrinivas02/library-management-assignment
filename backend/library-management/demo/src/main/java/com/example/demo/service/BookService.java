@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -7,8 +9,6 @@ import com.example.demo.model.Book;
 import com.example.demo.model.User;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.repository.UserRepository;
-
-import java.util.List;
 
 @Service
 
@@ -22,12 +22,12 @@ public class BookService {
 
     public Book addBook(Book book){
 
-        if(book.getAvailable()==null)
-            book.setAvailable(true);
+    if(book.getAvailable()==null)
+        book.setAvailable(true);
 
-        return bookRepository.save(book);
+    return bookRepository.save(book);
 
-    }
+}
 
     public List<Book> getAllBooks(){
 

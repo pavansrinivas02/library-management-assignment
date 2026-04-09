@@ -5,9 +5,15 @@ import org.springframework.stereotype.Repository;
 
 import com.example.demo.model.Book;
 
+import java.util.List;
+
 @Repository
 
 public interface BookRepository
 extends MongoRepository<Book,String>{
+
+    List<Book> findByAvailableFalse();
+
+    List<Book> findByPolicy(String policy);
 
 }
