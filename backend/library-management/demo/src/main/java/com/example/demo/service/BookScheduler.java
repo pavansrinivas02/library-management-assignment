@@ -2,7 +2,7 @@ package com.example.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.example.demo.model.Book;
 import com.example.demo.model.User;
@@ -12,37 +12,39 @@ import com.example.demo.repository.UserRepository;
 import java.time.LocalTime;
 import java.util.List;
 
-@Service
-
+@Component
 public class BookScheduler {
 
     @Autowired
-    BookRepository bookRepository;
+    private BookRepository bookRepository;
 
     @Autowired
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
     // Runs every 60 seconds
     @Scheduled(fixedRate = 60000)
-
     public void checkExpiryBooks(){
 
-        long currentTime = System.currentTimeMillis();
+        try{
 
-        List<Book> books =
-        bookRepository.findByAvailableFalse();
+            long currentTime = System.currentTimeMillis();
 
-        for(Book book:books){
+            List<Book> books =
+                    bookRepository.findByAvailableFalse();
 
-            if(book.getExpiryTime()!=null){
+            for(Book book : books){
 
-                if(currentTime > book.getExpiryTime()){
+                if(book.getExpiryTime()!=null &&
+                   currentTime > book.getExpiryTime()){
 
                     autoReturn(book);
 
                 }
-
             }
+
+        }catch(Exception e){
+
+            System.out.println("Scheduler error (expiry): "+e.getMessage());
 
         }
 
@@ -50,58 +52,72 @@ public class BookScheduler {
 
     // Library policy books return at 10PM
     @Scheduled(fixedRate = 60000)
-
     public void checkPolicyBooks(){
 
-        LocalTime now = LocalTime.now();
+        try{
 
-        if(now.getHour()==22){
+            LocalTime now = LocalTime.now();
 
-            List<Book> books=
-            bookRepository.findByPolicy("LIBRARY_ONLY");
+            if(now.getHour()==22){
 
-            for(Book book:books){
+                List<Book> books =
+                        bookRepository.findByPolicy("LIBRARY_ONLY");
 
-                if(Boolean.FALSE.equals(book.getAvailable())){
+                for(Book book : books){
 
-                    autoReturn(book);
+                    if(Boolean.FALSE.equals(book.getAvailable())){
+
+                        autoReturn(book);
+
+                    }
 
                 }
 
             }
+
+        }catch(Exception e){
+
+            System.out.println("Scheduler error (policy): "+e.getMessage());
 
         }
 
     }
 
     // Common return logic
+    private void autoReturn(Book book){
 
-    public void autoReturn(Book book){
+        try{
 
-        String userId=book.getBorrowedBy();
+            String userId = book.getBorrowedBy();
 
-        if(userId!=null){
+            if(userId!=null){
 
-            User user=
-            userRepository.findById(userId)
-            .orElse(null);
+                User user =
+                        userRepository.findById(userId)
+                                .orElse(null);
 
-            if(user!=null){
+                if(user!=null &&
+                   user.getBorrowedBooks()!=null){
 
-                user.getBorrowedBooks()
-                .remove(book.getId());
+                    user.getBorrowedBooks()
+                            .remove(book.getId());
 
-                userRepository.save(user);
+                    userRepository.save(user);
+
+                }
 
             }
 
+            book.setAvailable(true);
+            book.setBorrowedBy(null);
+
+            bookRepository.save(book);
+
+        }catch(Exception e){
+
+            System.out.println("Auto return error: "+e.getMessage());
+
         }
-
-        book.setAvailable(true);
-
-        book.setBorrowedBy(null);
-
-        bookRepository.save(book);
 
     }
 

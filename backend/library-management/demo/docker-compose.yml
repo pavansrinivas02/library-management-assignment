@@ -1,0 +1,19 @@
+services:
+
+  library-mongo:
+    image: mongo:7.0
+    container_name: library-mongo
+    ports:
+      - "27017:27017"
+
+  library-app:
+    build: .
+    container_name: library-app
+    ports:
+      - "8083:8083"
+
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://library-mongo:27017/librarydb
+
+    depends_on:
+      - library-mongo
